@@ -36,7 +36,7 @@ router.get("/callback", async (req, res) => {
     req.session.access_token = access_token;
 
     // ✅ REDIRECT TO FRONTEND DASHBOARD
-    res.redirect("http://localhost:5173/dashboard");
+    res.redirect("https://defyn-frontend.vercel.app//dashboard");
 
   } catch (err) {
     console.error(err.response?.data || err.message);
