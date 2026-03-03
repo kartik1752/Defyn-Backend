@@ -14,7 +14,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://defyn-frontend.vercel.app",
   credentials: true
 }));
 
@@ -92,8 +92,4 @@ const tryAlternativeConnection = async () => {
 
 connectDB();
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Backend running on http://localhost:${PORT}`);
-});
+module.exports = app;
