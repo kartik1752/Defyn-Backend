@@ -1,95 +1,119 @@
 require("dotenv").config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const session = require("express-session");
-const dns = require('dns');
+
 const configRoutes = require("./routes/config");
 const authRoutes = require("./routes/auth");
 
-// Force Node.js to use IPv4 and Google DNS
-dns.setServers(['8.8.8.8', '8.8.4.4']);
-
 const app = express();
 
-// Middleware
+/* ===============================
+   MIDDLEWARE
+================================= */
+
+// CORS
 app.use(cors({
-  origin: "https://defyn-frontend.vercel.app",
+  origin: [
+    "https://defyn-frontend.vercel.app",
+    "http://localhost:3000"
+  ],
   credentials: true
 }));
 
 app.use(express.json());
 
-// Session setup
+// Session
 app.use(session({
-  secret: "super_secret_key",
+  secret: process.env.SESSION_SECRET || "super_secret_key",
   resave: false,
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production", // true on Render
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
-// Routes
+/* ===============================
+   ROUTES
+================================= */
+
 app.use("/config", configRoutes);
 app.use("/auth", authRoutes);
 
-// MongoDB Connection with better options
+// Root route
+app.get("/", (req, res) => {
+  res.json({
+    message: "Defyn Backend API is running",
+    environment: process.env.NODE_ENV || "development"
+  });
+});
+
+// Health check (important for Render)
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    timestamp: new Date().toISOString()
+  });
+});
+
+/* ===============================
+   DATABASE CONNECTION
+================================= */
+
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URL || process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-      family: 4, // Force IPv4
-      directConnection: false,
+    if (!process.env.MONGO_URL) {
+      console.error("❌ MONGO_URL is missing in environment variables");
+      process.exit(1);
+    }
+
+    await mongoose.connect(process.env.MONGO_URL, {
+      serverSelectionTimeoutMS: 30000
     });
-    console.log("✅ MongoDB Connected successfully");
+
+    console.log("✅ MongoDB Connected");
   } catch (error) {
     console.error("❌ MongoDB Connection Error:", error.message);
-    console.error("❌ Check your MONGO_URI in .env file");
-    
-    // Try alternative connection approach
-    console.log("🔄 Attempting alternative connection method...");
-    tryAlternativeConnection();
-  }
-};
-
-// Alternative connection method
-const tryAlternativeConnection = async () => {
-  try {
-    // Get the connection string
-    const uri = process.env.MONGO_URL || process.env.MONGO_URI;
-    
-    // Try to resolve the SRV record manually
-    const { Resolver } = require('dns').promises;
-    const resolver = new Resolver();
-    resolver.setServers(['8.8.8.8', '8.8.4.4']);
-    
-    try {
-      const srvRecords = await resolver.resolveSrv('_mongodb._tcp.cluster0.relbufb.mongodb.net');
-      console.log('✅ SRV Records found:', srvRecords);
-      
-      // Connect using the resolved records
-      await mongoose.connect(uri, {
-        serverSelectionTimeoutMS: 30000,
-        family: 4,
-        directConnection: false
-      });
-      console.log("✅ MongoDB Connected successfully via alternative method");
-    } catch (srvError) {
-      console.error("❌ SRV Resolution failed:", srvError.message);
-      console.log("\n💡 Try this fix:");
-      console.log("1. Go to MongoDB Atlas → Connect → Connect your application");
-      console.log("2. Copy the 'standard connection string' (not SRV)");
-      console.log("3. Replace your MONGO_URL in .env with that string");
-    }
-  } catch (err) {
-    console.error("❌ Alternative connection failed:", err.message);
+    process.exit(1);
   }
 };
 
 connectDB();
+
+/* ===============================
+   ERROR HANDLING
+================================= */
+
+app.use((err, req, res, next) => {
+  console.error("❌ Error:", err.stack);
+  res.status(500).json({
+    error: "Something went wrong!",
+    message: err.message
+  });
+});
+
+// 404
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Route not found"
+  });
+});
+
+/* ===============================
+   SERVER LISTEN (RENDER FIX)
+================================= */
+
+const PORT = process.env.PORT;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+});
 
 module.exports = app;
