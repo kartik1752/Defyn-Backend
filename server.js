@@ -11,29 +11,34 @@ const authRoutes = require("./routes/auth");
 const app = express();
 
 /* ===============================
+   TRUST PROXY (IMPORTANT FOR RENDER)
+================================= */
+
+app.set("trust proxy", 1);
+
+/* ===============================
    MIDDLEWARE
 ================================= */
 
 // CORS
 app.use(cors({
-  origin: [
-    "https://defyn-frontend.vercel.app",
-    "http://localhost:3000"
-  ],
+  origin: "https://defyn-frontend.vercel.app",
   credentials: true
 }));
 
 app.use(express.json());
 
-// Session
+// SESSION
 app.use(session({
+  name: "defyn.sid",
   secret: process.env.SESSION_SECRET || "super_secret_key",
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === true,
-    sameSite: process.env.NODE_ENV === "none",
+    secure: true,
+    sameSite: "none",
     maxAge: 24 * 60 * 60 * 1000
   }
 }));
@@ -45,41 +50,35 @@ app.use(session({
 app.use("/config", configRoutes);
 app.use("/auth", authRoutes);
 
-// Root route
+// Root
 app.get("/", (req, res) => {
   res.json({
-    message: "Defyn Backend API is running",
-    environment: process.env.NODE_ENV || "development"
+    message: "Defyn Backend API running",
+    env: process.env.NODE_ENV
   });
 });
 
-// Health check (important for Render)
+// Health check
 app.get("/health", (req, res) => {
-  res.status(200).json({
+  res.json({
     status: "OK",
-    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-    timestamp: new Date().toISOString()
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
   });
 });
 
 /* ===============================
-   DATABASE CONNECTION
+   DATABASE
 ================================= */
 
 const connectDB = async () => {
   try {
-    if (!process.env.MONGO_URL) {
-      console.error("❌ MONGO_URL is missing in environment variables");
-      process.exit(1);
-    }
-
     await mongoose.connect(process.env.MONGO_URL, {
       serverSelectionTimeoutMS: 30000
     });
 
     console.log("✅ MongoDB Connected");
-  } catch (error) {
-    console.error("❌ MongoDB Connection Error:", error.message);
+  } catch (err) {
+    console.error("❌ MongoDB Error:", err.message);
     process.exit(1);
   }
 };
@@ -92,28 +91,23 @@ connectDB();
 
 app.use((err, req, res, next) => {
   console.error("❌ Error:", err.stack);
+
   res.status(500).json({
-    error: "Something went wrong!",
+    error: "Server Error",
     message: err.message
   });
 });
 
-// 404
 app.use((req, res) => {
-  res.status(404).json({
-    error: "Route not found"
-  });
+  res.status(404).json({ error: "Route not found" });
 });
 
 /* ===============================
-   SERVER LISTEN (RENDER FIX)
+   START SERVER
 ================================= */
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
 });
-
-module.exports = app;
