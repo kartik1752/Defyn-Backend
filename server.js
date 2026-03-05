@@ -37,11 +37,12 @@ app.use(session({
   proxy: true,
   rolling: true,   // 👈 add this
   cookie: {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    maxAge: 24 * 60 * 60 * 1000
-  }
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  domain: ".onrender.com",
+  maxAge: 24 * 60 * 60 * 1000
+}
 }));
 
 /* ===============================

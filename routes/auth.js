@@ -35,10 +35,9 @@ router.get("/callback", async (req, res) => {
     // store token in session
     req.session.access_token = access_token;
 
-    // 🔥 IMPORTANT: SAVE SESSION BEFORE REDIRECT
-    req.session.save(() => {
-      res.redirect("https://defyn-frontend.vercel.app/dashboard");
-    });
+req.session.save(() => {
+  res.redirect("https://defyn-frontend.vercel.app/dashboard?login=success");
+});
 
   } catch (err) {
     console.error(err.response?.data || err.message);
