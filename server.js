@@ -35,6 +35,7 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   proxy: true,
+  rolling: true,   // 👈 add this
   cookie: {
     httpOnly: true,
     secure: true,

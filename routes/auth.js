@@ -32,11 +32,13 @@ router.get("/callback", async (req, res) => {
 
     const access_token = tokenRes.data.access_token;
 
-    // ✅ STORE TOKEN IN SESSION (SECURE)
+    // store token in session
     req.session.access_token = access_token;
 
-    // ✅ REDIRECT TO FRONTEND DASHBOARD
-    res.redirect("https://defyn-frontend.vercel.app/dashboard");
+    // 🔥 IMPORTANT: SAVE SESSION BEFORE REDIRECT
+    req.session.save(() => {
+      res.redirect("https://defyn-frontend.vercel.app/dashboard");
+    });
 
   } catch (err) {
     console.error(err.response?.data || err.message);
