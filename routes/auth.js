@@ -5,6 +5,7 @@ const axios = require("axios");
 // 🔗 LOGIN
 router.get("/login", (req, res) => {
   const redirect = `https://discord.com/api/oauth2/authorize?client_id=${process.env.CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI)}&response_type=code&scope=identify%20guilds`;
+
   res.redirect(redirect);
 });
 
@@ -31,35 +32,23 @@ router.get("/callback", async (req, res) => {
 
     const access_token = tokenRes.data.access_token;
 
-    // Store token in session
+    // store token in session
     req.session.access_token = access_token;
-    
-    // Force session save and then redirect
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error:", err);
-        return res.send("❌ Session error");
-      }
-      
-      // Set explicit cookie headers for mobile
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Origin', 'https://defyn-frontend.vercel.app');
-      
-      // Redirect to frontend with success flag
-      res.redirect("https://defyn-frontend.vercel.app/dashboard?login=success");
-    });
+
+req.session.save(() => {
+  res.redirect("https://defyn-frontend.vercel.app/dashboard?login=success");
+});
 
   } catch (err) {
-    console.error("OAuth error:", err.response?.data || err.message);
+    console.error(err.response?.data || err.message);
     res.send("❌ Auth failed");
   }
 });
 
+
 // 🔐 GET USER
 router.get("/user", async (req, res) => {
-  console.log("Session in /user:", !!req.session?.access_token); // Debug log
-  
-  if (!req.session?.access_token) {
+  if (!req.session.access_token) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
@@ -72,16 +61,18 @@ router.get("/user", async (req, res) => {
         },
       }
     );
+
     res.json(userRes.data);
+
   } catch (err) {
-    console.error("User fetch error:", err.message);
     res.status(500).json({ error: "Failed to fetch user" });
   }
 });
 
-// 🔐 GET GUILDS
+
+// 🔐 GET GUILDS (ADMIN ONLY)
 router.get("/guilds", async (req, res) => {
-  if (!req.session?.access_token) {
+  if (!req.session.access_token) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
@@ -95,25 +86,22 @@ router.get("/guilds", async (req, res) => {
       }
     );
 
-    // Filter admin servers only
+    // 🧠 FILTER ADMIN SERVERS ONLY
     const adminGuilds = guildsRes.data.filter(
       g => (g.permissions & 0x8) === 0x8
     );
 
     res.json(adminGuilds);
+
   } catch (err) {
-    console.error("Guilds fetch error:", err.message);
     res.status(500).json({ error: "Failed to fetch guilds" });
   }
 });
 
+
 // 🔓 LOGOUT
 router.get("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ error: "Logout failed" });
-    }
-    res.clearCookie('defyn.sid', { domain: '.onrender.com', path: '/' });
+  req.session.destroy(() => {
     res.json({ message: "Logged out" });
   });
 });

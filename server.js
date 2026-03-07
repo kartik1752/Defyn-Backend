@@ -11,36 +11,35 @@ const authRoutes = require("./routes/auth");
 const app = express();
 
 /* ===============================
-   TRUST PROXY (CRITICAL FOR RENDER)
+   TRUST PROXY (IMPORTANT FOR RENDER)
 ================================= */
-app.set("trust proxy", 1); // Trust first proxy (Render)
+
+app.set("trust proxy", 1);
 
 /* ===============================
    MIDDLEWARE
 ================================= */
 
-// CORS - Allow credentials and specific origin
+// CORS
 app.use(cors({
   origin: "https://defyn-frontend.vercel.app",
-  credentials: true,
-  exposedHeaders: ['set-cookie'] // Important for mobile
+  credentials: true
 }));
 
 app.use(express.json());
 
-// SESSION - Optimized for mobile
+// SESSION
 app.use(session({
-  name: "defyn.sid", // Custom name helps with debugging
+  name: "defyn.sid",
   secret: process.env.SESSION_SECRET || "super_secret_key",
   resave: false,
   saveUninitialized: false,
-  proxy: true, // Trust proxy for secure cookies
+  proxy: true,
   cookie: {
     httpOnly: true,
-    secure: true, // Must be true for SameSite=None
-    sameSite: "none", // Required for cross-site requests
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    domain: ".onrender.com" // Optional: helps with subdomains
+    secure: true,
+    sameSite: "none",
+    maxAge: 24 * 60 * 60 * 1000
   }
 }));
 
@@ -55,8 +54,7 @@ app.use("/auth", authRoutes);
 app.get("/", (req, res) => {
   res.json({
     message: "Defyn Backend API running",
-    env: process.env.NODE_ENV,
-    session: !!req.session?.access_token // Debug
+    env: process.env.NODE_ENV
   });
 });
 
@@ -64,8 +62,7 @@ app.get("/", (req, res) => {
 app.get("/health", (req, res) => {
   res.json({
     status: "OK",
-    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
-    session: !!req.session?.access_token
+    mongodb: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
   });
 });
 
@@ -78,6 +75,7 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_URL, {
       serverSelectionTimeoutMS: 30000
     });
+
     console.log("✅ MongoDB Connected");
   } catch (err) {
     console.error("❌ MongoDB Error:", err.message);
@@ -93,6 +91,7 @@ connectDB();
 
 app.use((err, req, res, next) => {
   console.error("❌ Error:", err.stack);
+
   res.status(500).json({
     error: "Server Error",
     message: err.message
@@ -109,6 +108,6 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
