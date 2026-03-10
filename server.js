@@ -35,11 +35,13 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   proxy: true,
+  rolling: true,
   cookie: {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: 24 * 60 * 60 * 1000,
+    path: "/"
   }
 }));
 
