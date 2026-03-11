@@ -9,7 +9,9 @@ const activityRoutes = require("./routes/activity");
 const configRoutes = require("./routes/config");
 const authRoutes = require("./routes/auth");
 
+
 const app = express();
+
 
 /* ===============================
    TRUST PROXY (IMPORTANT FOR RENDER)
@@ -53,6 +55,8 @@ app.use(session({
 app.use("/config", configRoutes);
 app.use("/auth", authRoutes);
 app.use("/activity", activityRoutes);
+app.use("/top-channels", require("./routes/topChannels"));
+app.use("/top-users", require("./routes/topUsers"));
 
 // Root
 app.get("/", (req, res) => {

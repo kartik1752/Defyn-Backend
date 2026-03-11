@@ -5,6 +5,16 @@ const activitySchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  
+  channelId: {
+    type: String,
+    required: true
+  },
+
+  userId: {
+    type: String,
+    required: true
+  },
 
   date: {
     type: String,
