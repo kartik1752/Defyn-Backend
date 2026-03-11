@@ -58,6 +58,7 @@ app.use("/activity", activityRoutes);
 app.use("/top-channels", require("./routes/topChannels"));
 app.use("/top-users", require("./routes/topUsers"));
 app.use("/growth", require("./routes/growth"));
+app.use("/insights", require("./routes/insights"));
 
 // Root
 app.get("/", (req, res) => {
