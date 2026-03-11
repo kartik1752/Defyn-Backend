@@ -4,6 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const session = require("express-session");
+const activityRoutes = require("./routes/activity");
 
 const configRoutes = require("./routes/config");
 const authRoutes = require("./routes/auth");
@@ -51,6 +52,7 @@ app.use(session({
 
 app.use("/config", configRoutes);
 app.use("/auth", authRoutes);
+app.use("/activity", activityRoutes);
 
 // Root
 app.get("/", (req, res) => {
