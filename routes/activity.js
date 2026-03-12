@@ -1,11 +1,4 @@
-const express = require("express");
-const router = express.Router();
-const Activity = require("../models/Activity");
-
-
-// POST → update activity
 router.post("/", async (req, res) => {
-
   try {
 
     const { guildId, channelId, userId } = req.body;
@@ -16,6 +9,8 @@ router.post("/", async (req, res) => {
 
     let activity = await Activity.findOne({
       guildId,
+      channelId,
+      userId,
       date,
       hour
     });
@@ -24,6 +19,8 @@ router.post("/", async (req, res) => {
 
       activity = new Activity({
         guildId,
+        channelId,
+        userId,
         date,
         hour,
         messages: 1
@@ -45,29 +42,4 @@ router.post("/", async (req, res) => {
     res.status(500).json({ error: "Activity update failed" });
 
   }
-
 });
-
-
-// GET → fetch activity data
-router.get("/:guildId", async (req, res) => {
-
-  try {
-
-    const data = await Activity.find({
-      guildId: req.params.guildId
-    });
-
-    res.json(data);
-
-  } catch (err) {
-
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch activity" });
-
-  }
-
-});
-
-
-module.exports = router;
