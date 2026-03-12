@@ -1,3 +1,8 @@
+const express = require("express");
+const router = express.Router();
+
+const Activity = require("../models/Activity"); // import model
+
 router.post("/", async (req, res) => {
   try {
 
@@ -38,7 +43,7 @@ router.post("/", async (req, res) => {
 
   } catch (err) {
 
-    console.error("ACTIVITY ERROR:", err);   // ⭐ VERY IMPORTANT
+    console.error("ACTIVITY ERROR:", err);
     res.status(500).json({
       error: "Activity update failed",
       details: err.message
@@ -46,3 +51,5 @@ router.post("/", async (req, res) => {
 
   }
 });
+
+module.exports = router;
