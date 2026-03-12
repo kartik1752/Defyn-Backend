@@ -8,7 +8,7 @@ router.post("/", async (req, res) => {
 
   try {
 
-    const { guildId } = req.body;
+    const { guildId, channelId, userId } = req.body;
 
     const now = new Date();
     const date = now.toISOString().split("T")[0];
