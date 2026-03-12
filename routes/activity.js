@@ -38,8 +38,11 @@ router.post("/", async (req, res) => {
 
   } catch (err) {
 
-    console.error(err);
-    res.status(500).json({ error: "Activity update failed" });
+    console.error("ACTIVITY ERROR:", err);   // ⭐ VERY IMPORTANT
+    res.status(500).json({
+      error: "Activity update failed",
+      details: err.message
+    });
 
   }
 });
