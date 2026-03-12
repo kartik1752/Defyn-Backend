@@ -52,4 +52,26 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.get("/:guildId", async (req, res) => {
+  try {
+
+    const { guildId } = req.params;
+
+    const activity = await Activity.find({ guildId })
+      .sort({ date: -1, hour: -1 })
+      .limit(100);
+
+    res.json(activity);
+
+  } catch (err) {
+
+    console.error("ACTIVITY FETCH ERROR:", err);
+
+    res.status(500).json({
+      error: "Failed to fetch activity"
+    });
+
+  }
+});
+
 module.exports = router;
