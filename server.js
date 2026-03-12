@@ -10,6 +10,7 @@ const configRoutes = require("./routes/config");
 const authRoutes = require("./routes/auth");
 
 
+
 const app = express();
 
 
@@ -59,6 +60,7 @@ app.use("/top-channels", require("./routes/topChannels"));
 app.use("/top-users", require("./routes/topUsers"));
 app.use("/growth", require("./routes/growth"));
 app.use("/insights", require("./routes/insights"));
+app.use("/bot", require("./routes/bot"));
 
 // Root
 app.get("/", (req, res) => {
